@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- 親ページの favicon: 秋のりんご。外部読み込みなしで使える自前の SVG -->
+  <path d="M32 22 C26 14 12 14 10 28 C8 42 18 56 26 58 C29 59 31 57 32 57 C33 57 35 59 38 58 C46 56 56 42 54 28 C52 14 38 14 32 22 Z" fill="#C8102E"/>
+  <path d="M32 22 C32 16 34 12 38 7" fill="none" stroke="#5B3A1E" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M35 15 C40 6 50 5 53 8 C50 15 42 19 35 15 Z" fill="#4C9A2A"/>
+  <ellipse cx="22" cy="33" rx="4.5" ry="8" fill="#FFFFFF" opacity=".28" transform="rotate(-12 22 33)"/>
+</svg>
