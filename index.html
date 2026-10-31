@@ -5,19 +5,83 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>買い物リスト</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <!-- /exec のホストへ先に接続しておく（効果は要実測。無くても動く） -->
+  <link rel="preconnect" href="https://script.google.com">
   <style>
     html, body { margin: 0; height: 100%; }
     iframe { display: block; border: 0; width: 100%; height: 100%; }
-    details { position: fixed; right: 8px; bottom: 8px; font: 14px sans-serif; background: #fff; padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; }
+    /*
+      読み込み中の覆い。アプリが表示されるまで iframe の上に重ね、アプリのヘッダーと同じ見た目を先に出す。
+      色・高さ・フォントはアプリ側 Styles.html の値と同じ（--color-header / --color-bg / --color-text-muted / --header-height）
+    */
+    .loading {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      background: #F3EEEB;
+      color: #8A8580;
+      font-family: Roboto, "Noto Sans JP", sans-serif;
+      font-size: 16px;
+      line-height: 1.4;
+      -webkit-text-size-adjust: 100%;
+    }
+    .loading[hidden] { display: none; }
+    .loading__header {
+      height: 56px;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      background: #722F37;
+      color: #FFFFFF;
+    }
+    .loading__title { margin: 0; font-size: 1.125rem; font-weight: 600; }
+    .loading__text { margin: 0; padding: 24px 0; text-align: center; }
+    /* 案内。アプリから「表示した」の合図が来ないときだけ出す */
+    .help { position: fixed; right: 8px; bottom: 8px; font: 14px sans-serif; background: #fff; padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; }
+    .help[hidden] { display: none; }
   </style>
 </head>
 <body>
   <!-- https://script.google.com/macros/s/AKfycbwINw3aOPEVD5Dh13r6Ff84fulUQz8aFbhpTspit2fJ5eHTZiSSnvJlATviWQhFjflu1g/exec を Apps Script の /exec の URL に置き換える -->
   <iframe src="https://script.google.com/macros/s/AKfycbwINw3aOPEVD5Dh13r6Ff84fulUQz8aFbhpTspit2fJ5eHTZiSSnvJlATviWQhFjflu1g/exec"></iframe>
-  <details>
+  <div id="loading" class="loading" aria-live="polite">
+    <header class="loading__header">
+      <h1 class="loading__title">買い物リスト</h1>
+    </header>
+    <p class="loading__text">読み込み中…</p>
+  </div>
+  <details id="help" class="help" hidden>
     <summary>表示されないとき</summary>
     <p>先に Google にログインしてから、このページを開き直してください。</p>
     <p>初回は <a href="https://script.google.com/macros/s/AKfycbwINw3aOPEVD5Dh13r6Ff84fulUQz8aFbhpTspit2fJ5eHTZiSSnvJlATviWQhFjflu1g/exec" target="_blank" rel="noopener">こちら</a> を開いて承認してから戻ってください。</p>
   </details>
+  <script>
+    (function () {
+      // アプリが画面を出すと window.top へ { type: 'shopping-list', status: 'ready' } を送ってくる（アプリ側 App.html）。
+      // 来たら覆いを外す。この時間までに来なければ覆いを外して案内を出す（未ログイン・未承認・利用不可のとき）。
+      // 送信元オリジンは確認しない: 合図はデータを含まず、覆いを外すだけ。Google の sandbox のオリジンは固定できない
+      var READY_WAIT_MS = 15000;
+      var loading = document.getElementById('loading');
+      var help = document.getElementById('help');
+      var settled = false;
+      var timer = setTimeout(function () { settle(false); }, READY_WAIT_MS);
+
+      function settle(ready) {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        loading.hidden = true;
+        if (!ready) help.hidden = false;
+      }
+
+      window.addEventListener('message', function (event) {
+        var data = event.data;
+        if (!data || typeof data !== 'object') return;
+        if (data.type !== 'shopping-list' || data.status !== 'ready') return;
+        settle(true);
+      });
+    })();
+  </script>
 </body>
 </html>
